@@ -32,15 +32,3 @@ python app.py
 Navigate to: http://localhost:8000
 
 For LAN/mobile testing: ensure the device is on the same network and use the host machine IP, e.g. `http://192.168.1.42:8000`.
-
-## Integration Points
-Replace in-memory `state` dict in `app.py` with ingescape interactions:
-- On control POST: send data to ingescape API / bus.
-- Optionally implement polling or server-sent events to reflect external changes.
-
-## Notes
-- All endpoints return simple JSON payloads; extend schema as needed.
-- Keep debug mode off (`debug=False`) in production environments.
-
-## License
-See `LICENSE`.
