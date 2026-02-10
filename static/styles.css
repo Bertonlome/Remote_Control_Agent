@@ -16,5 +16,56 @@ body {
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cockpit-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(3, auto);
+    gap: 15px;
+    width: 95%;
+    max-width: 100%;
+    height: auto;
+    padding: 20px;
+}
+
+.grid-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.grid-item img {
+    width: 100%;
+    height: auto;
+    max-width: 100%;
+    object-fit: contain;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+}
+
+/* Landscape orientation optimization */
+@media screen and (orientation: landscape) {
+    .cockpit-grid {
+        max-height: 90vh;
+        width: auto;
+    }
+}
+
+/* Portrait fallback */
+@media screen and (orientation: portrait) {
+    .cockpit-grid {
+        grid-template-columns: repeat(3, 1fr);
+        width: 90%;
+    }
+    
+    .grid-item[style*="grid-column: 5"] {
+        grid-column: 3 !important;
+    }
 }
 
