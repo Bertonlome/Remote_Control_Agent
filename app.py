@@ -45,7 +45,7 @@ if __name__ == "__main__":
     print("Starting Remote Control Agent")
     print("=" * 50)
     
-    # Check available audio devices
+    # Initialize Ingescape agent
     igs.agent_set_name(agent_name)
     igs.definition_set_version("1.0")
     igs.log_set_console(verbose)
