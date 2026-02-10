@@ -22,6 +22,8 @@ initial_state = {
     "l_eng_fire": False,  # False = no fire, True = fire
     "r_eng_fire": False,  # False = no fire, True = fire
     "fire_warn_test": 0,  # 0 = released, >0 = pressed
+    "l_bottle_pressed": False,  # False = released, True = pressed
+    "r_bottle_pressed": False,  # False = released, True = pressed
 }
 
 # Current state (starts as copy of initial state)
@@ -141,6 +143,32 @@ def click_fire_warn():
     igs.output_set_int("fire_warn_test", new_value)
     return jsonify({"ok": True, "value": new_value})
 
+@app.route("/api/click_left_bottle", methods=["POST"])
+def click_left_bottle():
+    global state
+    state["l_bottle_pressed"] = True
+    igs.output_set_impulsion("l_bottle")
+    return jsonify({"ok": True})
+
+@app.route("/api/release_left_bottle", methods=["POST"])
+def release_left_bottle():
+    global state
+    state["l_bottle_pressed"] = False
+    return jsonify({"ok": True})
+
+@app.route("/api/click_right_bottle", methods=["POST"])
+def click_right_bottle():
+    global state
+    state["r_bottle_pressed"] = True
+    igs.output_set_impulsion("r_bottle")
+    return jsonify({"ok": True})
+
+@app.route("/api/release_right_bottle", methods=["POST"])
+def release_right_bottle():
+    global state
+    state["r_bottle_pressed"] = False
+    return jsonify({"ok": True})
+
 @app.route("/api/reset", methods=["POST"])
 def reset_state():
     global state, reset_counter
@@ -181,6 +209,9 @@ if __name__ == "__main__":
     igs.output_create("l_eng_fire_button", igs.IMPULSION_T , None)
     igs.output_create("r_eng_fire_button", igs.IMPULSION_T , None)
     igs.output_create("fire_warn_test", igs.INTEGER_T , None)
+    igs.output_create("l_bottle", igs.IMPULSION_T , None)
+    igs.output_create("r_bottle", igs.IMPULSION_T , None)
+
 
     igs.observe_input("reset", impulsion_input_callback, None)
     igs.observe_input("master_warning", bool_input_callback, None)

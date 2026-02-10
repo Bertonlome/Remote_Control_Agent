@@ -25,11 +25,11 @@ body {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     grid-template-rows: repeat(3, auto);
-    gap: 15px;
+    gap: 10px;
     width: 95%;
     max-width: 100%;
     height: auto;
-    padding: 20px;
+    padding: 10px;
 }
 
 .grid-item {
@@ -42,6 +42,7 @@ body {
     width: 100%;
     height: auto;
     max-width: 100%;
+    max-height: 25vh;
     object-fit: contain;
     cursor: pointer;
     user-select: none;
@@ -52,7 +53,7 @@ body {
 /* Landscape orientation optimization */
 @media screen and (orientation: landscape) {
     .cockpit-grid {
-        max-height: 90vh;
+        max-height: 85vh;
         width: auto;
     }
 }

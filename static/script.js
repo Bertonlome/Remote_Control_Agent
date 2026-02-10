@@ -6,6 +6,8 @@ const rightEngine = document.getElementById('right-engine');
 const masterWarning = document.getElementById('master-warning');
 const masterCaution = document.getElementById('master-caution');
 const fireWarn = document.getElementById('fire-warn');
+const leftBottle = document.getElementById('left-bottle');
+const rightBottle = document.getElementById('right-bottle');
 
 // Default/initial state
 const defaultState = {
@@ -15,7 +17,9 @@ const defaultState = {
     master_caution: false,
     l_eng_fire: false,
     r_eng_fire: false,
-    fire_warn_test: 0
+    fire_warn_test: 0,
+    l_bottle_pressed: false,
+    r_bottle_pressed: false
 };
 
 // Current state
@@ -70,6 +74,16 @@ function resetToDefaults() {
     // Reset fire warning test
     if (fireWarn) {
         fireWarn.src = '/static/images/fire_warn_released.PNG';
+    }
+    
+    // Reset left bottle
+    if (leftBottle) {
+        leftBottle.src = '/static/images/fire_bottle_released.PNG';
+    }
+    
+    // Reset right bottle
+    if (rightBottle) {
+        rightBottle.src = '/static/images/fire_bottle_released.PNG';
     }
     
     console.log('UI reset to defaults');
@@ -129,6 +143,30 @@ function updateUIFromState(serverState) {
             rightEngine.src = '/static/images/r_eng_fire_wo_glass_fire.PNG';
         } else {
             rightEngine.src = '/static/images/r_eng_fire_wo_glass.PNG';
+        }
+    }
+    
+    // Update left bottle - check pressed first, then fire state
+    if (leftBottle && (serverState.l_bottle_pressed !== currentState.l_bottle_pressed ||
+                       serverState.l_eng_fire !== currentState.l_eng_fire)) {
+        if (serverState.l_bottle_pressed) {
+            leftBottle.src = '/static/images/fire_bottle_pressed.PNG';
+        } else if (serverState.l_eng_fire) {
+            leftBottle.src = '/static/images/fire_bottle_released_fire.PNG';
+        } else {
+            leftBottle.src = '/static/images/fire_bottle_released.PNG';
+        }
+    }
+    
+    // Update right bottle - check pressed first, then fire state
+    if (rightBottle && (serverState.r_bottle_pressed !== currentState.r_bottle_pressed ||
+                        serverState.r_eng_fire !== currentState.r_eng_fire)) {
+        if (serverState.r_bottle_pressed) {
+            rightBottle.src = '/static/images/fire_bottle_pressed.PNG';
+        } else if (serverState.r_eng_fire) {
+            rightBottle.src = '/static/images/fire_bottle_released_fire.PNG';
+        } else {
+            rightBottle.src = '/static/images/fire_bottle_released.PNG';
         }
     }
 }
@@ -268,5 +306,75 @@ if (rightEngine) {
 if (fireWarn) {
     fireWarn.addEventListener('click', async function() {
         await postJSON('/api/click_fire_warn', {});
+    });
+}
+
+// Left fire bottle handlers
+if (leftBottle) {
+    const handleLeftBottlePress = async function() {
+        currentState.l_bottle_pressed = true;
+        leftBottle.src = '/static/images/fire_bottle_pressed.PNG';
+        await postJSON('/api/click_left_bottle', {});
+    };
+    
+    const handleLeftBottleRelease = async function() {
+        currentState.l_bottle_pressed = false;
+        if (currentState.l_eng_fire) {
+            leftBottle.src = '/static/images/fire_bottle_released_fire.PNG';
+        } else {
+            leftBottle.src = '/static/images/fire_bottle_released.PNG';
+        }
+        await postJSON('/api/release_left_bottle', {});
+    };
+    
+    leftBottle.addEventListener('mousedown', handleLeftBottlePress);
+    leftBottle.addEventListener('mouseup', handleLeftBottleRelease);
+    leftBottle.addEventListener('mouseleave', function() {
+        if (currentState.l_bottle_pressed) {
+            handleLeftBottleRelease();
+        }
+    });
+    leftBottle.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleLeftBottlePress();
+    });
+    leftBottle.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleLeftBottleRelease();
+    });
+}
+
+// Right fire bottle handlers
+if (rightBottle) {
+    const handleRightBottlePress = async function() {
+        currentState.r_bottle_pressed = true;
+        rightBottle.src = '/static/images/fire_bottle_pressed.PNG';
+        await postJSON('/api/click_right_bottle', {});
+    };
+    
+    const handleRightBottleRelease = async function() {
+        currentState.r_bottle_pressed = false;
+        if (currentState.r_eng_fire) {
+            rightBottle.src = '/static/images/fire_bottle_released_fire.PNG';
+        } else {
+            rightBottle.src = '/static/images/fire_bottle_released.PNG';
+        }
+        await postJSON('/api/release_right_bottle', {});
+    };
+    
+    rightBottle.addEventListener('mousedown', handleRightBottlePress);
+    rightBottle.addEventListener('mouseup', handleRightBottleRelease);
+    rightBottle.addEventListener('mouseleave', function() {
+        if (currentState.r_bottle_pressed) {
+            handleRightBottleRelease();
+        }
+    });
+    rightBottle.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        handleRightBottlePress();
+    });
+    rightBottle.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        handleRightBottleRelease();
     });
 }
