@@ -173,40 +173,50 @@ if (leftEngine) {
         const rect = leftEngine.getBoundingClientRect();
         const clickY = e.clientY - rect.top;
         const imageHeight = rect.height;
-        const topThreshold = imageHeight * 0.20;
+        const topThreshold = imageHeight * 0.20; // Top 20% for glass restore
+        const buttonThreshold = imageHeight * 0.30; // Bottom 70% for button press (30%-100%)
         
         const hasGlass = currentState.left_engine_glass;
         let newGlassState = hasGlass;
+        let sendImpulsion = false;
         
         if (hasGlass) {
+            // Glass is present, remove it on any click (safety glass must be broken first)
             newGlassState = false;
         } else {
+            // Glass is removed
             if (clickY <= topThreshold) {
+                // Top 20%: restore glass
                 newGlassState = true;
-            } else {
-                // Clicking outside top 20% when no glass - just send button press
-                await postJSON('/api/click_left_engine', {});
-                return;
+            } else if (clickY >= buttonThreshold) {
+                // Bottom 70%: send button impulsion
+                sendImpulsion = true;
             }
+            // Middle zone (20%-30%): do nothing
         }
         
-        // Update glass state
-        currentState.left_engine_glass = newGlassState;
-        const hasFire = currentState.l_eng_fire;
-        
-        if (newGlassState && hasFire) {
-            leftEngine.src = '/static/images/l_eng_fire_w_glass_fire.PNG';
-        } else if (newGlassState && !hasFire) {
-            leftEngine.src = '/static/images/l_eng_fire_w_glass.PNG';
-        } else if (!newGlassState && hasFire) {
-            leftEngine.src = '/static/images/l_eng_fire_wo_glass_fire.PNG';
-        } else {
-            leftEngine.src = '/static/images/l_eng_fire_wo_glass.PNG';
+        // Update glass state if it changed
+        if (newGlassState !== hasGlass) {
+            currentState.left_engine_glass = newGlassState;
+            const hasFire = currentState.l_eng_fire;
+            
+            if (newGlassState && hasFire) {
+                leftEngine.src = '/static/images/l_eng_fire_w_glass_fire.PNG';
+            } else if (newGlassState && !hasFire) {
+                leftEngine.src = '/static/images/l_eng_fire_w_glass.PNG';
+            } else if (!newGlassState && hasFire) {
+                leftEngine.src = '/static/images/l_eng_fire_wo_glass_fire.PNG';
+            } else {
+                leftEngine.src = '/static/images/l_eng_fire_wo_glass.PNG';
+            }
+            
+            await postJSON('/api/update_engine', { side: 'left', has_glass: newGlassState });
         }
         
-        // Send glass update and button press
-        await postJSON('/api/update_engine', { side: 'left', has_glass: newGlassState });
-        await postJSON('/api/click_left_engine', {});
+        // Send button impulsion if in button zone
+        if (sendImpulsion) {
+            await postJSON('/api/click_left_engine', {});
+        }
     });
 }
 
@@ -216,40 +226,50 @@ if (rightEngine) {
         const rect = rightEngine.getBoundingClientRect();
         const clickY = e.clientY - rect.top;
         const imageHeight = rect.height;
-        const topThreshold = imageHeight * 0.20;
+        const topThreshold = imageHeight * 0.20; // Top 20% for glass restore
+        const buttonThreshold = imageHeight * 0.30; // Bottom 70% for button press (30%-100%)
         
         const hasGlass = currentState.right_engine_glass;
         let newGlassState = hasGlass;
+        let sendImpulsion = false;
         
         if (hasGlass) {
+            // Glass is present, remove it on any click (safety glass must be broken first)
             newGlassState = false;
         } else {
+            // Glass is removed
             if (clickY <= topThreshold) {
+                // Top 20%: restore glass
                 newGlassState = true;
-            } else {
-                // Clicking outside top 20% when no glass - just send button press
-                await postJSON('/api/click_right_engine', {});
-                return;
+            } else if (clickY >= buttonThreshold) {
+                // Bottom 70%: send button impulsion
+                sendImpulsion = true;
             }
+            // Middle zone (20%-30%): do nothing
         }
         
-        // Update glass state
-        currentState.right_engine_glass = newGlassState;
-        const hasFire = currentState.r_eng_fire;
-        
-        if (newGlassState && hasFire) {
-            rightEngine.src = '/static/images/r_eng_fire_w_glass_fire.PNG';
-        } else if (newGlassState && !hasFire) {
-            rightEngine.src = '/static/images/r_eng_fire_w_glass.PNG';
-        } else if (!newGlassState && hasFire) {
-            rightEngine.src = '/static/images/r_eng_fire_wo_glass_fire.PNG';
-        } else {
-            rightEngine.src = '/static/images/r_eng_fire_wo_glass.PNG';
+        // Update glass state if it changed
+        if (newGlassState !== hasGlass) {
+            currentState.right_engine_glass = newGlassState;
+            const hasFire = currentState.r_eng_fire;
+            
+            if (newGlassState && hasFire) {
+                rightEngine.src = '/static/images/r_eng_fire_w_glass_fire.PNG';
+            } else if (newGlassState && !hasFire) {
+                rightEngine.src = '/static/images/r_eng_fire_w_glass.PNG';
+            } else if (!newGlassState && hasFire) {
+                rightEngine.src = '/static/images/r_eng_fire_wo_glass_fire.PNG';
+            } else {
+                rightEngine.src = '/static/images/r_eng_fire_wo_glass.PNG';
+            }
+            
+            await postJSON('/api/update_engine', { side: 'right', has_glass: newGlassState });
         }
         
-        // Send glass update and button press
-        await postJSON('/api/update_engine', { side: 'right', has_glass: newGlassState });
-        await postJSON('/api/click_right_engine', {});
+        // Send button impulsion if in button zone
+        if (sendImpulsion) {
+            await postJSON('/api/click_right_engine', {});
+        }
     });
 }
 
