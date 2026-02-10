@@ -58,21 +58,22 @@ function resetToDefaults() {
     console.log('UI reset to defaults');
 }
 
-// Poll for state changes every 500ms
+// Poll for state changes every 2 seconds (reduced frequency)
 async function pollState() {
     const response = await getJSON('/api/state');
     if (response && response.reset_counter !== undefined) {
         // Check if reset counter has changed (indicates a reset occurred)
         if (response.reset_counter > lastResetCounter) {
             lastResetCounter = response.reset_counter;
+            currentState = { ...response.state };
             resetToDefaults();
             console.log(`Reset detected (counter: ${response.reset_counter})`);
         }
     }
 }
 
-// Start polling
-setInterval(pollState, 500);
+// Start polling at reduced frequency
+setInterval(pollState, 2000);
 
 function setupEngineFireToggle(engineImg, side) {
     if (!engineImg) return;
@@ -80,8 +81,9 @@ function setupEngineFireToggle(engineImg, side) {
     const withGlass = `/static/images/${side}_eng_fire_w_glass.PNG`;
     const withoutGlass = `/static/images/${side}_eng_fire_wo_glass.PNG`;
     const stateKey = `${side === 'l' ? 'left' : 'right'}_engine_glass`;
+    const sideName = side === 'l' ? 'left' : 'right';
     
-    engineImg.addEventListener('click', function(e) {
+    engineImg.addEventListener('click', async function(e) {
         const rect = engineImg.getBoundingClientRect();
         const clickY = e.clientY - rect.top;
         const imageHeight = rect.height;
@@ -90,17 +92,28 @@ function setupEngineFireToggle(engineImg, side) {
         const currentSrc = engineImg.src;
         const hasGlass = currentSrc.includes('_w_glass');
         
+        let newGlassState = hasGlass;
+        
         if (hasGlass) {
             // Glass is present, remove it on any click
             engineImg.src = withoutGlass;
-            currentState[stateKey] = false;
+            newGlassState = false;
         } else {
             // Glass is removed, restore only if clicking top 20%
             if (clickY <= topThreshold) {
                 engineImg.src = withGlass;
-                currentState[stateKey] = true;
+                newGlassState = true;
             }
         }
+        
+        // Update local state
+        currentState[stateKey] = newGlassState;
+        
+        // Sync with server
+        await postJSON('/api/update_engine', { 
+            side: sideName, 
+            has_glass: newGlassState 
+        });
     });
 }
 

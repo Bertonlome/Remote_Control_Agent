@@ -1,12 +1,17 @@
-from flask import Flask, render_template, send_from_directory, jsonify
+from flask import Flask, render_template, send_from_directory, jsonify, request
 import signal as sig_module
 import time
 import sys
 import os
 import threading
+import logging
 from echo import *
 
 app = Flask(__name__)
+
+# Suppress Flask's default request logging for /api/state to reduce console clutter
+log = logging.getLogger('werkzeug')
+log.setLevel(logging.ERROR)
 
 # Initial/default state for all controls
 initial_state = {
@@ -79,6 +84,19 @@ def index():
 @app.route("/api/state")
 def get_state():
     return jsonify({"state": state, "reset_counter": reset_counter})
+
+@app.route("/api/update_engine", methods=["POST"])
+def update_engine():
+    global state
+    data = request.get_json(silent=True) or {}
+    side = data.get("side")  # "left" or "right"
+    has_glass = data.get("has_glass", True)
+    
+    if side in ["left", "right"]:
+        state_key = f"{side}_engine_glass"
+        state[state_key] = has_glass
+        return jsonify({"ok": True, "state": state})
+    return jsonify({"ok": False, "error": "Invalid side"}), 400
 
 @app.route("/api/reset", methods=["POST"])
 def reset_state():
