@@ -16,6 +16,7 @@ initial_state = {
 
 # Current state (starts as copy of initial state)
 state = initial_state.copy()
+reset_counter = 0  # Increments each time reset is called
 
 # Add route to serve images
 @app.route('/static/images/<path:filename>')
@@ -24,7 +25,7 @@ def serve_image(filename):
 
 port = 5670
 agent_name = "Remote_Control_Agent"
-device = "wlp0s20f3" 
+device = "A7500_NETGEAR" 
 verbose = False
 is_interrupted = False
 
@@ -66,9 +67,10 @@ def impulsion_input_callback(io_type, name, value_type, value, my_data):
     if name == "reset":
         time.sleep(0.1)
         # Reset to initial state
-        global state
+        global state, reset_counter
         state = initial_state.copy()
-        print("State reset to defaults")
+        reset_counter += 1
+        print(f"State reset to defaults (reset #{reset_counter})")
 
 @app.route("/")
 def index():
@@ -76,13 +78,14 @@ def index():
 
 @app.route("/api/state")
 def get_state():
-    return jsonify(state)
+    return jsonify({"state": state, "reset_counter": reset_counter})
 
 @app.route("/api/reset", methods=["POST"])
 def reset_state():
-    global state
+    global state, reset_counter
     state = initial_state.copy()
-    return jsonify({"ok": True, "state": state})
+    reset_counter += 1
+    return jsonify({"ok": True, "state": state, "reset_counter": reset_counter})
 
 if __name__ == "__main__":
     sig_module.signal(sig_module.SIGINT, signal_handler)

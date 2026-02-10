@@ -12,6 +12,7 @@ const defaultState = {
 
 // Current state
 let currentState = { ...defaultState };
+let lastResetCounter = 0;  // Track reset counter from server
 
 // Helper function for API calls
 async function postJSON(url, payload) {
@@ -59,15 +60,13 @@ function resetToDefaults() {
 
 // Poll for state changes every 500ms
 async function pollState() {
-    const serverState = await getJSON('/api/state');
-    if (serverState) {
-        // Check if state was reset (all values back to initial)
-        if (serverState.left_engine_glass === defaultState.left_engine_glass &&
-            serverState.right_engine_glass === defaultState.right_engine_glass &&
-            (currentState.left_engine_glass !== defaultState.left_engine_glass ||
-             currentState.right_engine_glass !== defaultState.right_engine_glass)) {
-            // State was reset, update UI
+    const response = await getJSON('/api/state');
+    if (response && response.reset_counter !== undefined) {
+        // Check if reset counter has changed (indicates a reset occurred)
+        if (response.reset_counter > lastResetCounter) {
+            lastResetCounter = response.reset_counter;
             resetToDefaults();
+            console.log(`Reset detected (counter: ${response.reset_counter})`);
         }
     }
 }
