@@ -118,8 +118,6 @@ def reset_state():
     return jsonify({"ok": True, "state": state, "reset_counter": reset_counter})
 
 if __name__ == "__main__":
-    sig_module.signal(sig_module.SIGINT, signal_handler)
-
     print("=" * 50)
     print("Starting Remote Control Agent")
     print("=" * 50)
@@ -173,14 +171,21 @@ if __name__ == "__main__":
     print("Press Ctrl+C to stop")
     print("=" * 50)
     
+    # Register signal handler after everything is initialized
+    sig_module.signal(sig_module.SIGINT, signal_handler)
+    
     try:
-        app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
-    except KeyboardInterrupt:
+        app.run(host="0.0.0.0", port=8000, debug=False, use_reloader=False)
+    except (KeyboardInterrupt, SystemExit):
+        pass
+    finally:
         print("\n" + "=" * 50)
         print("Shutting down Remote Control Agent...")
         print("=" * 50)
-        igs.stop()
-        print("✓ Ingescape agent stopped")
+        try:
+            igs.stop()
+            print("✓ Ingescape agent stopped")
+        except:
+            pass
         print("Exiting...")
-    finally:
         sys.exit(0)
