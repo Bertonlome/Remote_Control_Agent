@@ -52,7 +52,7 @@ function resetToDefaults() {
     console.log('UI reset to defaults');
 }
 
-// Poll for state changes every 2 seconds (reduced frequency)
+// Poll for state changes every 200ms (more responsive)
 async function pollState() {
     const response = await getJSON('/api/state');
     if (response && response.reset_counter !== undefined) {
@@ -66,8 +66,8 @@ async function pollState() {
     }
 }
 
-// Start polling at reduced frequency
-setInterval(pollState, 2000);
+// Start polling at faster rate for responsive reset
+setInterval(pollState, 200);
 
 function setupEngineFireToggle(engineImg, side) {
     if (!engineImg) return;
