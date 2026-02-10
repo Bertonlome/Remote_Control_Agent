@@ -1,5 +1,38 @@
-// Mustang branch - GUI removed
-// Background only mode
+// Mustang branch - Cockpit controls
+// Engine fire glass toggle functionality
+
+const leftEngine = document.getElementById('left-engine');
+const rightEngine = document.getElementById('right-engine');
+
+function setupEngineFireToggle(engineImg, side) {
+    if (!engineImg) return;
+    
+    const withGlass = `/static/images/${side}_eng_fire_w_glass.PNG`;
+    const withoutGlass = `/static/images/${side}_eng_fire_wo_glass.PNG`;
+    
+    engineImg.addEventListener('click', function(e) {
+        const rect = engineImg.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const imageHeight = rect.height;
+        const topThreshold = imageHeight * 0.20; // Top 20% of image
+        
+        const currentSrc = engineImg.src;
+        const hasGlass = currentSrc.includes('_w_glass');
+        
+        if (hasGlass) {
+            // Glass is present, remove it on any click
+            engineImg.src = withoutGlass;
+        } else {
+            // Glass is removed, restore only if clicking top 20%
+            if (clickY <= topThreshold) {
+                engineImg.src = withGlass;
+            }
+        }
+    });
+}
+
+setupEngineFireToggle(leftEngine, 'l');
+setupEngineFireToggle(rightEngine, 'r');
 
 
 if (toggle1) {
