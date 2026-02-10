@@ -17,6 +17,11 @@ log.setLevel(logging.ERROR)
 initial_state = {
     "left_engine_glass": True,  # True = with glass, False = without glass
     "right_engine_glass": True,
+    "master_warning": False,  # False = off, True = on
+    "master_caution": False,  # False = off, True = on
+    "l_eng_fire": False,  # False = no fire, True = fire
+    "r_eng_fire": False,  # False = no fire, True = fire
+    "fire_warn_test": 0,  # 0 = released, >0 = pressed
 }
 
 # Current state (starts as copy of initial state)
@@ -62,23 +67,20 @@ def on_freeze_callback(is_frozen, my_data):
     # add code here if needed
 
 def bool_input_callback(io_type, name, value_type, value, my_data):
+    global state
     if name == "master_warning":
-        time.sleep(0.1)
-        # add code here if needed
+        state["master_warning"] = value
     elif name == "master_caution":
-        time.sleep(0.1)
-        # add code here if needed
+        state["master_caution"] = value
     elif name == "l_eng_fire":
-        time.sleep(0.1)
-        # add code here if needed
+        state["l_eng_fire"] = value
     elif name == "r_eng_fire":
-        time.sleep(0.1)
-        # add code here if needed
+        state["r_eng_fire"] = value
 
 def int_input_callback(io_type, name, value_type, value, my_data):
+    global state
     if name == "fire_warn_test":
-        time.sleep(0.1)
-        # add code here if needed
+        state["fire_warn_test"] = value
 
 def impulsion_input_callback(io_type, name, value_type, value, my_data):
     if name == "reset":
