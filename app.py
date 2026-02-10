@@ -112,6 +112,35 @@ def update_engine():
         return jsonify({"ok": True, "state": state})
     return jsonify({"ok": False, "error": "Invalid side"}), 400
 
+@app.route("/api/click_master_warning", methods=["POST"])
+def click_master_warning():
+    igs.output_set_impulsion("master_warning")
+    return jsonify({"ok": True})
+
+@app.route("/api/click_master_caution", methods=["POST"])
+def click_master_caution():
+    igs.output_set_impulsion("master_caution")
+    return jsonify({"ok": True})
+
+@app.route("/api/click_left_engine", methods=["POST"])
+def click_left_engine():
+    igs.output_set_impulsion("l_eng_fire_button")
+    return jsonify({"ok": True})
+
+@app.route("/api/click_right_engine", methods=["POST"])
+def click_right_engine():
+    igs.output_set_impulsion("r_eng_fire_button")
+    return jsonify({"ok": True})
+
+@app.route("/api/click_fire_warn", methods=["POST"])
+def click_fire_warn():
+    global state
+    # Toggle between 0 and 1
+    new_value = 0 if state["fire_warn_test"] != 0 else 1
+    state["fire_warn_test"] = new_value
+    igs.output_set_int("fire_warn_test", new_value)
+    return jsonify({"ok": True, "value": new_value})
+
 @app.route("/api/reset", methods=["POST"])
 def reset_state():
     global state, reset_counter

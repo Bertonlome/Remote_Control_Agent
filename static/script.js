@@ -154,57 +154,107 @@ async function pollState() {
 // Start polling at faster rate for responsive reset
 setInterval(pollState, 200);
 
-function setupEngineFireToggle(engineImg, side) {
-    if (!engineImg) return;
-    
-    const stateKey = `${side === 'l' ? 'left' : 'right'}_engine_glass`;
-    const fireStateKey = `${side === 'l' ? 'l' : 'r'}_eng_fire`;
-    const sideName = side === 'l' ? 'left' : 'right';
-    
-    engineImg.addEventListener('click', async function(e) {
-        const rect = engineImg.getBoundingClientRect();
-        const clickY = e.clientY - rect.top;
-        const imageHeight = rect.height;
-        const topThreshold = imageHeight * 0.20; // Top 20% of image
-        
-        const hasGlass = currentState[stateKey];
-        const hasFire = currentState[fireStateKey];
-        let newGlassState = hasGlass;
-        
-        if (hasGlass) {
-            // Glass is present, remove it on any click
-            newGlassState = false;
-        } else {
-            // Glass is removed, restore only if clicking top 20%
-            if (clickY <= topThreshold) {
-                newGlassState = true;
-            } else {
-                return; // Don't do anything if clicking outside top 20% when no glass
-            }
-        }
-        
-        // Update local state
-        currentState[stateKey] = newGlassState;
-        
-        // Update image based on both glass and fire state
-        const prefix = side === 'l' ? 'l' : 'r';
-        if (newGlassState && hasFire) {
-            engineImg.src = `/static/images/${prefix}_eng_fire_w_glass_fire.PNG`;
-        } else if (newGlassState && !hasFire) {
-            engineImg.src = `/static/images/${prefix}_eng_fire_w_glass.PNG`;
-        } else if (!newGlassState && hasFire) {
-            engineImg.src = `/static/images/${prefix}_eng_fire_wo_glass_fire.PNG`;
-        } else {
-            engineImg.src = `/static/images/${prefix}_eng_fire_wo_glass.PNG`;
-        }
-        
-        // Sync with server
-        await postJSON('/api/update_engine', { 
-            side: sideName, 
-            has_glass: newGlassState 
-        });
+// Add click handlers for controls
+if (masterWarning) {
+    masterWarning.addEventListener('click', async function() {
+        await postJSON('/api/click_master_warning', {});
     });
 }
 
-setupEngineFireToggle(leftEngine, 'l');
-setupEngineFireToggle(rightEngine, 'r');
+if (masterCaution) {
+    masterCaution.addEventListener('click', async function() {
+        await postJSON('/api/click_master_caution', {});
+    });
+}
+
+if (leftEngine) {
+    leftEngine.addEventListener('click', async function(e) {
+        // First handle the glass toggle logic (existing functionality)
+        const rect = leftEngine.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const imageHeight = rect.height;
+        const topThreshold = imageHeight * 0.20;
+        
+        const hasGlass = currentState.left_engine_glass;
+        let newGlassState = hasGlass;
+        
+        if (hasGlass) {
+            newGlassState = false;
+        } else {
+            if (clickY <= topThreshold) {
+                newGlassState = true;
+            } else {
+                // Clicking outside top 20% when no glass - just send button press
+                await postJSON('/api/click_left_engine', {});
+                return;
+            }
+        }
+        
+        // Update glass state
+        currentState.left_engine_glass = newGlassState;
+        const hasFire = currentState.l_eng_fire;
+        
+        if (newGlassState && hasFire) {
+            leftEngine.src = '/static/images/l_eng_fire_w_glass_fire.PNG';
+        } else if (newGlassState && !hasFire) {
+            leftEngine.src = '/static/images/l_eng_fire_w_glass.PNG';
+        } else if (!newGlassState && hasFire) {
+            leftEngine.src = '/static/images/l_eng_fire_wo_glass_fire.PNG';
+        } else {
+            leftEngine.src = '/static/images/l_eng_fire_wo_glass.PNG';
+        }
+        
+        // Send glass update and button press
+        await postJSON('/api/update_engine', { side: 'left', has_glass: newGlassState });
+        await postJSON('/api/click_left_engine', {});
+    });
+}
+
+if (rightEngine) {
+    rightEngine.addEventListener('click', async function(e) {
+        // First handle the glass toggle logic (existing functionality)
+        const rect = rightEngine.getBoundingClientRect();
+        const clickY = e.clientY - rect.top;
+        const imageHeight = rect.height;
+        const topThreshold = imageHeight * 0.20;
+        
+        const hasGlass = currentState.right_engine_glass;
+        let newGlassState = hasGlass;
+        
+        if (hasGlass) {
+            newGlassState = false;
+        } else {
+            if (clickY <= topThreshold) {
+                newGlassState = true;
+            } else {
+                // Clicking outside top 20% when no glass - just send button press
+                await postJSON('/api/click_right_engine', {});
+                return;
+            }
+        }
+        
+        // Update glass state
+        currentState.right_engine_glass = newGlassState;
+        const hasFire = currentState.r_eng_fire;
+        
+        if (newGlassState && hasFire) {
+            rightEngine.src = '/static/images/r_eng_fire_w_glass_fire.PNG';
+        } else if (newGlassState && !hasFire) {
+            rightEngine.src = '/static/images/r_eng_fire_w_glass.PNG';
+        } else if (!newGlassState && hasFire) {
+            rightEngine.src = '/static/images/r_eng_fire_wo_glass_fire.PNG';
+        } else {
+            rightEngine.src = '/static/images/r_eng_fire_wo_glass.PNG';
+        }
+        
+        // Send glass update and button press
+        await postJSON('/api/update_engine', { side: 'right', has_glass: newGlassState });
+        await postJSON('/api/click_right_engine', {});
+    });
+}
+
+if (fireWarn) {
+    fireWarn.addEventListener('click', async function() {
+        await postJSON('/api/click_fire_warn', {});
+    });
+}
