@@ -1,4 +1,4 @@
-from flask import Flask, render_template, send_from_directory
+from flask import Flask, render_template, send_from_directory, jsonify
 import signal as sig_module
 import time
 import sys
@@ -7,6 +7,15 @@ import threading
 from echo import *
 
 app = Flask(__name__)
+
+# Initial/default state for all controls
+initial_state = {
+    "left_engine_glass": True,  # True = with glass, False = without glass
+    "right_engine_glass": True,
+}
+
+# Current state (starts as copy of initial state)
+state = initial_state.copy()
 
 # Add route to serve images
 @app.route('/static/images/<path:filename>')
@@ -34,9 +43,46 @@ def on_freeze_callback(is_frozen, my_data):
     assert isinstance(agent_object, Echo)
     # add code here if needed
 
+def bool_input_callback(io_type, name, value_type, value, my_data):
+    if name == "master_warning":
+        time.sleep(0.1)
+        # add code here if needed
+    elif name == "master_caution":
+        time.sleep(0.1)
+        # add code here if needed
+    elif name == "l_eng_fire":
+        time.sleep(0.1)
+        # add code here if needed
+    elif name == "r_eng_fire":
+        time.sleep(0.1)
+        # add code here if needed
+
+def int_input_callback(io_type, name, value_type, value, my_data):
+    if name == "fire_warn_test":
+        time.sleep(0.1)
+        # add code here if needed
+
+def impulsion_input_callback(io_type, name, value_type, value, my_data):
+    if name == "reset":
+        time.sleep(0.1)
+        # Reset to initial state
+        global state
+        state = initial_state.copy()
+        print("State reset to defaults")
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+@app.route("/api/state")
+def get_state():
+    return jsonify(state)
+
+@app.route("/api/reset", methods=["POST"])
+def reset_state():
+    global state
+    state = initial_state.copy()
+    return jsonify({"ok": True, "state": state})
 
 if __name__ == "__main__":
     sig_module.signal(sig_module.SIGINT, signal_handler)
@@ -60,6 +106,26 @@ if __name__ == "__main__":
 
     igs.log_set_console(True)
     igs.log_set_console_level(igs.LOG_INFO)
+
+    igs.input_create("reset", igs.IMPULSION_T, None)
+    igs.input_create("master_warning", igs.BOOL_T , None)
+    igs.input_create("master_caution", igs.BOOL_T , None)
+    igs.input_create("l_eng_fire", igs.BOOL_T , None)
+    igs.input_create("r_eng_fire", igs.BOOL_T , None)
+    igs.input_create("fire_warn_test", igs.INTEGER_T , None)
+
+    igs.output_create("master_warning", igs.IMPULSION_T , None)
+    igs.output_create("master_caution", igs.IMPULSION_T , None)
+    igs.output_create("l_eng_fire_button", igs.IMPULSION_T , None)
+    igs.output_create("r_eng_fire_button", igs.IMPULSION_T , None)
+    igs.output_create("fire_warn_test", igs.INTEGER_T , None)
+
+    igs.observe_input("reset", impulsion_input_callback, None)
+    igs.observe_input("master_warning", bool_input_callback, None)
+    igs.observe_input("master_caution", bool_input_callback, None)
+    igs.observe_input("l_eng_fire", bool_input_callback, None)
+    igs.observe_input("r_eng_fire", bool_input_callback, None)
+    igs.observe_input("fire_warn_test", int_input_callback, None)
 
     try:
         igs.start_with_device(device, port)
