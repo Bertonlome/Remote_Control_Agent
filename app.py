@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 import signal as sig_module
 import time
 import sys
@@ -7,6 +7,11 @@ import threading
 from echo import *
 
 app = Flask(__name__)
+
+# Add route to serve images
+@app.route('/static/images/<path:filename>')
+def serve_image(filename):
+    return send_from_directory('images', filename)
 
 port = 5670
 agent_name = "Remote_Control_Agent"
@@ -56,7 +61,7 @@ state = {
 
 @app.route("/")
 def index():
-    return render_template("index.html", state=state)
+    return render_template("index.html")
 
 @app.post("/api/toggle1")
 def api_toggle1():

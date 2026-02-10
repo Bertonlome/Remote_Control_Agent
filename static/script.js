@@ -1,28 +1,6 @@
-async function postJSON(url, payload) {
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    });
-    return await res.json();
-  } catch (e) { console.error('Request failed', e); }
-}
+// Mustang branch - GUI removed
+// Background only mode
 
-const toggle1 = document.getElementById('toggle1');
-const toggle2 = document.getElementById('toggle2');
-const toggle3 = document.getElementById('toggle3');
-const toggle4 = document.getElementById('toggle4');
-const sliderEl = document.getElementById('slider');
-const sliderValueEl = document.getElementById('slider-value');
-const pushBtn1 = document.getElementById('push1');
-const pushBtn2 = document.getElementById('push2');
-const pushBtn3 = document.getElementById('push3');
-const pushBtn4 = document.getElementById('push4');
-const pressCount1 = document.getElementById('press-count1');
-const pressCount2 = document.getElementById('press-count2');
-const pressCount3 = document.getElementById('press-count3');
-const pressCount4 = document.getElementById('press-count4');
 
 if (toggle1) {
   toggle1.addEventListener('change', async () => {
