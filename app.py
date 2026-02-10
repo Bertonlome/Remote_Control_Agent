@@ -36,8 +36,20 @@ is_interrupted = False
 
 def signal_handler(signal_received, frame):
     global is_interrupted
-    print("\n", sig_module.strsignal(signal_received), sep="")
+    print("\n" + "=" * 50)
+    print("Shutting down Remote Control Agent...")
+    print("=" * 50)
     is_interrupted = True
+    
+    # Stop Ingescape agent
+    try:
+        igs.stop()
+        print("✓ Ingescape agent stopped")
+    except Exception as e:
+        print(f"⚠ Error stopping Ingescape: {e}")
+    
+    print("Exiting...")
+    sys.exit(0)
 
 def on_agent_event_callback(event, uuid, name, event_data, my_data):
     agent_object = my_data
@@ -155,6 +167,20 @@ if __name__ == "__main__":
         import traceback
         traceback.print_exc()
         sys.exit(1)
-    # catch SIGINT handler after starting agent
-    sig_module.signal(sig_module.SIGINT, signal_handler)
-    app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
+    
+    print("✓ Ingescape agent started")
+    print("✓ Starting Flask web server on http://0.0.0.0:8000")
+    print("Press Ctrl+C to stop")
+    print("=" * 50)
+    
+    try:
+        app.run(host="0.0.0.0", port=8000, debug=True, use_reloader=False)
+    except KeyboardInterrupt:
+        print("\n" + "=" * 50)
+        print("Shutting down Remote Control Agent...")
+        print("=" * 50)
+        igs.stop()
+        print("✓ Ingescape agent stopped")
+        print("Exiting...")
+    finally:
+        sys.exit(0)
