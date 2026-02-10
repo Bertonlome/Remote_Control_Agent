@@ -39,20 +39,14 @@ async function getJSON(url) {
 
 // Reset to default state
 function resetToDefaults() {
-    currentState = { ...defaultState };
-    
     // Reset left engine
     if (leftEngine) {
-        leftEngine.src = currentState.left_engine_glass
-            ? '/static/images/l_eng_fire_w_glass.PNG'
-            : '/static/images/l_eng_fire_wo_glass.PNG';
+        leftEngine.src = '/static/images/l_eng_fire_w_glass.PNG';
     }
     
     // Reset right engine
     if (rightEngine) {
-        rightEngine.src = currentState.right_engine_glass
-            ? '/static/images/r_eng_fire_w_glass.PNG'
-            : '/static/images/r_eng_fire_wo_glass.PNG';
+        rightEngine.src = '/static/images/r_eng_fire_w_glass.PNG';
     }
     
     console.log('UI reset to defaults');
@@ -65,7 +59,7 @@ async function pollState() {
         // Check if reset counter has changed (indicates a reset occurred)
         if (response.reset_counter > lastResetCounter) {
             lastResetCounter = response.reset_counter;
-            currentState = { ...response.state };
+            currentState = { ...defaultState };
             resetToDefaults();
             console.log(`Reset detected (counter: ${response.reset_counter})`);
         }
