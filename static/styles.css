@@ -4,6 +4,60 @@
     box-sizing: border-box;
 }
 
+/* Sync timestamp overlay */
+#sync-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: rgba(0, 0, 0, 0.75);
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+}
+
+#sync-overlay.visible {
+    display: flex;
+}
+
+#sync-time {
+    color: #00FF99;
+    font-family: monospace;
+    font-weight: bold;
+    text-align: center;
+    text-shadow: none;
+    letter-spacing: 0.05em;
+    line-height: 1.3;
+    padding: 30px 40px;
+    border: 3px solid #00FF99;
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 16px;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 90vw;
+    max-width: 480px;
+}
+
+.sync-date {
+    font-size: clamp(22px, 6vw, 36px);
+    opacity: 0.85;
+}
+
+.sync-hm {
+    font-size: clamp(64px, 18vw, 110px);
+}
+
+.sync-sec {
+    font-size: clamp(80px, 22vw, 140px);
+}
+
+.sync-ms {
+    font-size: clamp(52px, 14vw, 90px);
+    opacity: 0.75;
+}
+
 html, body {
     width: 100%;
     height: 100%;
@@ -61,12 +115,55 @@ body {
 /* Portrait fallback */
 @media screen and (orientation: portrait) {
     .cockpit-grid {
-        grid-template-columns: repeat(3, 1fr);
-        width: 90%;
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(5, auto);
+        width: 95%;
+        gap: 15px;
     }
     
-    .grid-item[style*="grid-column: 5"] {
-        grid-column: 3 !important;
+    /* Row 1: Master Warning and Caution */
+    .grid-item[style*="grid-row: 1"][style*="grid-column: 1"] {
+        grid-row: 1 !important;
+        grid-column: 1 !important;
+    }
+    
+    .grid-item[style*="grid-row: 1"][style*="grid-column: 2"] {
+        grid-row: 1 !important;
+        grid-column: 2 !important;
+    }
+    
+    /* Row 2: Left Engine */
+    .grid-item[style*="grid-row: 2"][style*="grid-column: 1"] {
+        grid-row: 2 !important;
+        grid-column: 1 !important;
+    }
+    
+    /* Row 2-3: Fire Warning (centered, spanning both columns) */
+    .grid-item[style*="grid-row: 2"][style*="grid-column: 3"] {
+        grid-row: 3 !important;
+        grid-column: 1 / span 2 !important;
+    }
+    
+    /* Row 2: Right Engine */
+    .grid-item[style*="grid-row: 2"][style*="grid-column: 5"] {
+        grid-row: 2 !important;
+        grid-column: 2 !important;
+    }
+    
+    /* Row 4: Left Bottle */
+    .grid-item[style*="grid-row: 3"][style*="grid-column: 1"] {
+        grid-row: 4 !important;
+        grid-column: 1 !important;
+    }
+    
+    /* Row 4: Right Bottle */
+    .grid-item[style*="grid-row: 3"][style*="grid-column: 5"] {
+        grid-row: 4 !important;
+        grid-column: 2 !important;
+    }
+    
+    .grid-item img {
+        max-height: 18vh;
     }
 }
 

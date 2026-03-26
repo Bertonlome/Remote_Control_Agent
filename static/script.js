@@ -25,6 +25,45 @@ const defaultState = {
 // Current state
 let currentState = { ...defaultState };
 let lastResetCounter = 0;  // Track reset counter from server
+let lastSyncPulse = 0;     // Track sync impulsion counter
+let syncHideTimer = null;  // Timer to hide the sync overlay
+let syncTickTimer = null;  // Interval to update the live clock
+
+const syncOverlay = document.getElementById('sync-overlay');
+const syncTimeEl = document.getElementById('sync-time');
+
+function formatNow() {
+    const now = new Date();
+    const pad = (n, w = 2) => String(n).padStart(w, '0');
+    const date = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    const hm   = `${pad(now.getHours())}:${pad(now.getMinutes())}`;
+    const sec  = pad(now.getSeconds());
+    const ms   = pad(now.getMilliseconds(), 3);
+    return `<span class="sync-date">${date}</span>` +
+           `<span class="sync-hm">${hm}</span>` +
+           `<span class="sync-sec">${sec}</span>` +
+           `<span class="sync-ms">${ms}</span>`;
+}
+
+function showSyncOverlay() {
+    if (syncHideTimer) clearTimeout(syncHideTimer);
+    if (syncTickTimer) clearInterval(syncTickTimer);
+
+    if (syncTimeEl) syncTimeEl.innerHTML = formatNow();
+    if (syncOverlay) syncOverlay.classList.add('visible');
+
+    // Tick every 100ms so milliseconds visibly advance
+    syncTickTimer = setInterval(() => {
+        if (syncTimeEl) syncTimeEl.innerHTML = formatNow();
+    }, 100);
+
+    syncHideTimer = setTimeout(() => {
+        if (syncOverlay) syncOverlay.classList.remove('visible');
+        clearInterval(syncTickTimer);
+        syncTickTimer = null;
+        syncHideTimer = null;
+    }, 10000);
+}
 
 // Helper function for API calls
 async function postJSON(url, payload) {
@@ -175,6 +214,11 @@ function updateUIFromState(serverState) {
 async function pollState() {
     const response = await getJSON('/api/state');
     if (response && response.reset_counter !== undefined && response.state) {
+        // Check for sync impulsion
+        if (response.sync_pulse !== undefined && response.sync_pulse > lastSyncPulse) {
+            lastSyncPulse = response.sync_pulse;
+            showSyncOverlay();
+        }
         // Check if reset counter has changed (indicates a reset occurred)
         if (response.reset_counter > lastResetCounter) {
             lastResetCounter = response.reset_counter;
@@ -190,7 +234,7 @@ async function pollState() {
 }
 
 // Start polling at faster rate for responsive reset
-setInterval(pollState, 200);
+setInterval(pollState, 100);
 
 // Add click handlers for controls
 if (masterWarning) {
@@ -247,6 +291,15 @@ if (leftEngine) {
                 await postJSON('/api/update_engine', { side: 'left', has_glass: true });
             } else if (clickY >= buttonThreshold) {
                 // Bottom 70%: send button impulsion ONLY
+                if (currentState.l_eng_fire) {
+                    // Flash to no-fire for 500ms to show button was pressed, fire persists
+                    leftEngine.src = '/static/images/l_eng_fire_wo_glass.PNG';
+                    setTimeout(() => {
+                        if (currentState.l_eng_fire) {
+                            leftEngine.src = '/static/images/l_eng_fire_wo_glass_fire.PNG';
+                        }
+                    }, 500);
+                }
                 await postJSON('/api/click_left_engine', {});
             }
             // Middle zone (20%-30%): do nothing
@@ -296,6 +349,15 @@ if (rightEngine) {
                 await postJSON('/api/update_engine', { side: 'right', has_glass: true });
             } else if (clickY >= buttonThreshold) {
                 // Bottom 70%: send button impulsion ONLY
+                if (currentState.r_eng_fire) {
+                    // Flash to no-fire for 500ms to show button was pressed, fire persists
+                    rightEngine.src = '/static/images/r_eng_fire_wo_glass.PNG';
+                    setTimeout(() => {
+                        if (currentState.r_eng_fire) {
+                            rightEngine.src = '/static/images/r_eng_fire_wo_glass_fire.PNG';
+                        }
+                    }, 500);
+                }
                 await postJSON('/api/click_right_engine', {});
             }
             // Middle zone (20%-30%): do nothing

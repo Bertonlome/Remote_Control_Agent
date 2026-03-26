@@ -5,6 +5,7 @@ import sys
 import os
 import threading
 import logging
+import socket
 from echo import *
 
 app = Flask(__name__)
@@ -29,6 +30,8 @@ initial_state = {
 # Current state (starts as copy of initial state)
 state = initial_state.copy()
 reset_counter = 0  # Increments each time reset is called
+sync_pulse = 0       # Increments each time sync impulsion is received
+sync_timestamp = "" # ISO timestamp of last sync impulsion
 
 # Add route to serve images
 @app.route('/static/images/<path:filename>')
@@ -37,7 +40,8 @@ def serve_image(filename):
 
 port = 5670
 agent_name = "Remote_Control_Agent"
-device = "A7500_NETGEAR" 
+device = "wlp0s20f3"
+#device = "A7500_NETGEAR" 
 verbose = False
 is_interrupted = False
 
@@ -92,6 +96,12 @@ def impulsion_input_callback(io_type, name, value_type, value, my_data):
         state = initial_state.copy()
         reset_counter += 1
         print(f"State reset to defaults (reset #{reset_counter})")
+    elif name == "sync":
+        global sync_pulse, sync_timestamp
+        from datetime import datetime
+        sync_timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        sync_pulse += 1
+        print(f"Sync impulsion received at {sync_timestamp}")
 
 @app.route("/")
 def index():
@@ -99,7 +109,7 @@ def index():
 
 @app.route("/api/state")
 def get_state():
-    return jsonify({"state": state, "reset_counter": reset_counter})
+    return jsonify({"state": state, "reset_counter": reset_counter, "sync_pulse": sync_pulse, "sync_timestamp": sync_timestamp})
 
 @app.route("/api/update_engine", methods=["POST"])
 def update_engine():
@@ -198,6 +208,7 @@ if __name__ == "__main__":
     igs.log_set_console_level(igs.LOG_INFO)
 
     igs.input_create("reset", igs.IMPULSION_T, None)
+    igs.input_create("sync", igs.IMPULSION_T, None)
     igs.input_create("master_warning", igs.BOOL_T , None)
     igs.input_create("master_caution", igs.BOOL_T , None)
     igs.input_create("l_eng_fire", igs.BOOL_T , None)
@@ -214,6 +225,7 @@ if __name__ == "__main__":
 
 
     igs.observe_input("reset", impulsion_input_callback, None)
+    igs.observe_input("sync", impulsion_input_callback, None)
     igs.observe_input("master_warning", bool_input_callback, None)
     igs.observe_input("master_caution", bool_input_callback, None)
     igs.observe_input("l_eng_fire", bool_input_callback, None)
@@ -229,7 +241,10 @@ if __name__ == "__main__":
         sys.exit(1)
     
     print("✓ Ingescape agent started")
-    print("✓ Starting Flask web server on http://0.0.0.0:8000")
+    local_ip = socket.gethostbyname(socket.gethostname())
+    print("✓ Starting Flask web server")
+    print(f"  Local:   http://localhost:8000")
+    print(f"  Network: http://{local_ip}:8000")
     print("Press Ctrl+C to stop")
     print("=" * 50)
     
