@@ -40,7 +40,7 @@ def serve_image(filename):
 
 port = 5670
 agent_name = "Remote_Control_Agent"
-device = "wlp0s20f3"
+device = "Ethernet"
 #device = "A7500_NETGEAR" 
 verbose = False
 is_interrupted = False
