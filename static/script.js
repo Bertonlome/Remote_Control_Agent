@@ -151,11 +151,12 @@ function updateUIFromState(serverState) {
             : '/static/images/fire_warn_released.PNG';
     }
     
-    // Update left engine - combine glass and fire state
+    // Update left engine - combine glass and fire state (fire_warn_test illuminates regardless of glass)
     if (leftEngine && (serverState.l_eng_fire !== currentState.l_eng_fire || 
-                       serverState.left_engine_glass !== currentState.left_engine_glass)) {
+                       serverState.left_engine_glass !== currentState.left_engine_glass ||
+                       serverState.fire_warn_test !== currentState.fire_warn_test)) {
         const hasGlass = serverState.left_engine_glass;
-        const hasFire = serverState.l_eng_fire;
+        const hasFire = serverState.l_eng_fire || serverState.fire_warn_test > 0;
         
         if (hasGlass && hasFire) {
             leftEngine.src = '/static/images/l_eng_fire_w_glass_fire.PNG';
@@ -168,11 +169,12 @@ function updateUIFromState(serverState) {
         }
     }
     
-    // Update right engine - combine glass and fire state
+    // Update right engine - combine glass and fire state (fire_warn_test illuminates regardless of glass)
     if (rightEngine && (serverState.r_eng_fire !== currentState.r_eng_fire || 
-                        serverState.right_engine_glass !== currentState.right_engine_glass)) {
+                        serverState.right_engine_glass !== currentState.right_engine_glass ||
+                        serverState.fire_warn_test !== currentState.fire_warn_test)) {
         const hasGlass = serverState.right_engine_glass;
-        const hasFire = serverState.r_eng_fire;
+        const hasFire = serverState.r_eng_fire || serverState.fire_warn_test > 0;
         
         if (hasGlass && hasFire) {
             rightEngine.src = '/static/images/r_eng_fire_w_glass_fire.PNG';

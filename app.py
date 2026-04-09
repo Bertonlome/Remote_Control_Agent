@@ -157,26 +157,28 @@ def click_fire_warn():
 def click_left_bottle():
     global state
     state["l_bottle_pressed"] = True
-    igs.output_set_impulsion("l_bottle")
+    igs.output_set_bool("l_bottle", True)
     return jsonify({"ok": True})
 
 @app.route("/api/release_left_bottle", methods=["POST"])
 def release_left_bottle():
     global state
     state["l_bottle_pressed"] = False
+    igs.output_set_bool("l_bottle", False)
     return jsonify({"ok": True})
 
 @app.route("/api/click_right_bottle", methods=["POST"])
 def click_right_bottle():
     global state
     state["r_bottle_pressed"] = True
-    igs.output_set_impulsion("r_bottle")
+    igs.output_set_bool("r_bottle", True)
     return jsonify({"ok": True})
 
 @app.route("/api/release_right_bottle", methods=["POST"])
 def release_right_bottle():
     global state
     state["r_bottle_pressed"] = False
+    igs.output_set_bool("r_bottle", False)
     return jsonify({"ok": True})
 
 @app.route("/api/reset", methods=["POST"])
@@ -220,8 +222,8 @@ if __name__ == "__main__":
     igs.output_create("l_eng_fire_button", igs.IMPULSION_T , None)
     igs.output_create("r_eng_fire_button", igs.IMPULSION_T , None)
     igs.output_create("fire_warn_test", igs.INTEGER_T , None)
-    igs.output_create("l_bottle", igs.IMPULSION_T , None)
-    igs.output_create("r_bottle", igs.IMPULSION_T , None)
+    igs.output_create("l_bottle", igs.BOOL_T , None)
+    igs.output_create("r_bottle", igs.BOOL_T , None)
 
 
     igs.observe_input("reset", impulsion_input_callback, None)
@@ -235,16 +237,16 @@ if __name__ == "__main__":
     try:
         igs.start_with_device(device, port)
     except Exception as e:
-        print(f"❌ Failed to start Ingescape agent: {e}")
+        print(f"[ERROR] Failed to start Ingescape agent: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)
     
-    print("✓ Ingescape agent started")
+    print("[OK] Ingescape agent started")
     local_ip = socket.gethostbyname(socket.gethostname())
-    print("✓ Starting Flask web server")
-    print(f"  Local:   http://localhost:8000")
-    print(f"  Network: http://{local_ip}:8000")
+    print("[OK] Starting Flask web server")
+    print(f"  Local:   http://localhost:5091")
+    print(f"  Network: http://{local_ip}:5091")
     print("Press Ctrl+C to stop")
     print("=" * 50)
     
@@ -252,7 +254,7 @@ if __name__ == "__main__":
     sig_module.signal(sig_module.SIGINT, signal_handler)
     
     try:
-        app.run(host="0.0.0.0", port=8000, debug=False, use_reloader=False)
+        app.run(host="0.0.0.0", port=5091, debug=False, use_reloader=False)
     except (KeyboardInterrupt, SystemExit):
         pass
     finally:
