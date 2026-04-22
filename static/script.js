@@ -28,9 +28,31 @@ let lastResetCounter = 0;  // Track reset counter from server
 let lastSyncPulse = 0;     // Track sync impulsion counter
 let syncHideTimer = null;  // Timer to hide the sync overlay
 let syncTickTimer = null;  // Interval to update the live clock
+let syncAudioTimers = [];  // Timers for countdown audio playback
 
 const syncOverlay = document.getElementById('sync-overlay');
 const syncTimeEl = document.getElementById('sync-time');
+
+// Pre-load countdown audio files so they are ready to play immediately
+const COUNT_WORDS = ['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
+const countAudios = COUNT_WORDS.map(word => {
+    const a = new Audio(`/static/sounds/${word}.mp3`);
+    a.preload = 'auto';
+    return a;
+});
+
+// Browsers (especially iOS Safari) block audio unless triggered by a user gesture.
+// On the first interaction we silently play every clip to "unlock" it.
+let audioUnlocked = false;
+function unlockAudio() {
+    if (audioUnlocked) return;
+    audioUnlocked = true;
+    countAudios.forEach(a => {
+        a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+    });
+}
+document.addEventListener('click',      unlockAudio);
+document.addEventListener('touchstart', unlockAudio);
 
 function formatNow() {
     const now = new Date();
@@ -48,9 +70,26 @@ function formatNow() {
 function showSyncOverlay() {
     if (syncHideTimer) clearTimeout(syncHideTimer);
     if (syncTickTimer) clearInterval(syncTickTimer);
+    syncAudioTimers.forEach(t => clearTimeout(t));
+    syncAudioTimers = [];
 
     if (syncTimeEl) syncTimeEl.innerHTML = formatNow();
     if (syncOverlay) syncOverlay.classList.add('visible');
+
+    // Play audio whose name matches the ones digit of the displayed seconds.
+    // e.g. sync at :37 → plays Seven, Eight, Nine, Ten, One, Two, ... for 10 s.
+    // Mapping: ones digit 1-9 → index 0-8 (One-Nine), ones digit 0 → index 9 (Ten).
+    const startDigit = new Date().getSeconds() % 10;
+    for (let i = 0; i < 10; i++) {
+        const digit = (startDigit + i) % 10;
+        const audioIndex = digit === 0 ? 9 : digit - 1;
+        const audio = countAudios[audioIndex];
+        const t = setTimeout(() => {
+            audio.currentTime = 0;
+            audio.play().catch(() => {});
+        }, i * 1000);
+        syncAudioTimers.push(t);
+    }
 
     // Tick every 100ms so milliseconds visibly advance
     syncTickTimer = setInterval(() => {

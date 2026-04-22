@@ -38,6 +38,11 @@ sync_timestamp = "" # ISO timestamp of last sync impulsion
 def serve_image(filename):
     return send_from_directory('images', filename)
 
+# Add route to serve sounds
+@app.route('/static/sounds/<path:filename>')
+def serve_sound(filename):
+    return send_from_directory('Sound', filename)
+
 port = 5670
 agent_name = "Remote_Control_Agent"
 device = "Ethernet"
